@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{ user.name }}'s Profile</h1>
+<p><strong>Bio:</strong> {{ user.bio }}</p>
+<p><strong>Skills:</strong> {{ user.skills }}</p>
+<p><strong>Field of Work:</strong> {{ user.field_of_work }}</p>
+{% if user.avatar %}
+    <img src="{{ url_for('static', filename='uploads/avatars/' + user.avatar) }}"
+         alt="{{ user.name }}" class="img-thumbnail">
+{% endif %}
+
+<h2>Portfolio</h2>
+<div class="row">
+    {% for project in user.projects %}
+        <div class="col-md-4">
+            <div class="card mb-4">
+                {% if project.image %}
+                    <img src="{{ url_for('static', filename='uploads/projects/images/' + project.image) }}"
+                         class="card-img-top" alt="{{ project.title }}">
+                {% else %}
+                    <img src="{{ url_for('static', filename='uploads/projects/images/default_project.png') }}"
+                         class="card-img-top" alt="Default Project">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ project.title }}</h5>
+                    <p class="card-text">{{ project.description }}</p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

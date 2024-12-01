@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Search Users</h1>
+
+<!-- Форма поиска и фильтрации -->
+<form method="GET" action="{{ url_for('routes.search_users') }}" class="mb-4">
+    <div class="row">
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="query" placeholder="Search users" value="{{ request.args.get('query', '') }}">
+        </div>
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="skill" placeholder="Filter by skill" value="{{ request.args.get('skill', '') }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Apply</button>
+        </div>
+    </div>
+</form>
+
+<!-- Список пользователей -->
+<div class="row">
+    {% for user in users %}
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{{ user.name }}</h5>
+                    <p class="card-text">
+                        <strong>Skills:</strong> {{ user.skills or 'No skills listed' }} <br>
+                        <strong>Field of Work:</strong> {{ user.field_of_work or 'Not specified' }}
+                    </p>
+                    <a href="{{ url_for('routes.profile', user_id=user.id) }}" class="btn btn-info">View Profile</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>No users found. Try adjusting your filters or search criteria.</p>
+    {% endfor %}
+</div>
+{% endblock %}

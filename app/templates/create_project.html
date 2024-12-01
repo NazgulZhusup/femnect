@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Create a New Project</h1>
+<form method="POST" action="{{ url_for('routes.create_project') }}" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <input type="text" id="title" name="title" class="form-control" placeholder="Enter project title" required>
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea id="description" name="description" class="form-control" rows="4" placeholder="Describe your project" required></textarea>
+    </div>
+    <div class="mb-3">
+        <label for="tags" class="form-label">Tags (comma-separated)</label>
+        <input type="text" id="tags" name="tags" class="form-control" placeholder="e.g., design, development, marketing">
+    </div>
+    <div class="mb-3">
+        <label for="images" class="form-label">Portfolio Images</label>
+        <input type="file" id="images" name="images" class="form-control" class="form-control" accept="image/*">
+    </div>
+    <div class="mb-3">
+        <label for="files" class="form-label">Upload Case Files</label>
+        <input type="file" id="files" name="files" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx">
+    </div>
+    <button type="submit" class="btn btn-primary">Create Project</button>
+</form>
+{% endblock %}
