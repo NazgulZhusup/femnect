@@ -6,8 +6,27 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask import current_app
 import os
+import re
 
 routes = Blueprint('routes', __name__)
+
+# Функция для извлечения навыков из описания проекта
+def extract_skills_from_description(description):
+    skills = []
+    keywords = ['design', 'development', 'marketing', 'data analysis', 'ui/ux', 'python', 'javascript']
+    for keyword in keywords:
+        if re.search(r'\b' + re.escape(keyword) + r'\b', description, re.IGNORECASE):
+            skills.append(keyword)
+    return skills
+
+# Функция для поиска пользователей с подходящими навыками
+def find_matching_users(skills):
+    if not skills:
+        return []
+    matching_users = User.query.filter(User.skills.ilike(f'%{skills[0]}%'))
+    for skill in skills[1:]:
+        matching_users = matching_users.filter(User.skills.ilike(f'%{skill}%'))
+    return matching_users.all()
 
 @routes.route('/', methods=['GET'])
 def index():
@@ -250,7 +269,9 @@ def search_users():
 @routes.route('/project/<int:project_id>')
 def project_detail(project_id):
     project = Project.query.get_or_404(project_id)
-    return render_template('project_details.html', project=project)
+    skills = extract_skills_from_description(project.description)
+    suggested_users = find_matching_users(skills)
+    return render_template('project_details.html', project=project, suggested_users=suggested_users)
 
 @routes.route('/project/<int:project_id>/edit_details', methods=['POST'])
 @login_required
@@ -265,45 +286,3 @@ def edit_project_detail(project_id):
     db.session.commit()
     flash('Project details updated successfully!', 'success')
     return redirect(url_for('routes.project_detail', project_id=project.id))
-
-
-from flask_socketio import emit, join_room, leave_room
-from app import socketio
-from .models import Message
-from flask_login import current_user
-
-@socketio.on('join')
-def on_join(data):
-    if current_user.is_authenticated:
-        room = data['room']
-        join_room(room)
-        emit('status', {'msg': f'{current_user.name} has entered the room.'}, room=room)
-    else:
-        emit('status', {'msg': 'You must be logged in to join the chat.'})
-
-@socketio.on('leave')
-def on_leave(data):
-    if current_user.is_authenticated:
-        room = data['room']
-        leave_room(room)
-        emit('status', {'msg': f'{current_user.name} has left the room.'}, room=room)
-    else:
-        emit('status', {'msg': 'You must be logged in to leave the chat.'})
-
-@socketio.on('message')
-def handle_message(data):
-    if current_user.is_authenticated:
-        room = data['room']
-        content = data['msg']
-        user_id = current_user.id
-        project_id = int(room)
-
-        # Сохранение сообщения в базе данных
-        message = Message(project_id=project_id, user_id=user_id, content=content)
-        db.session.add(message)
-        db.session.commit()
-
-        # Отправка сообщения всем в комнате
-        emit('message', {'user': current_user.name, 'msg': content}, room=room)
-    else:
-        emit('status', {'msg': 'You must be logged in to send messages.'})

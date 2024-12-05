@@ -21,17 +21,19 @@
 <!-- Список пользователей -->
 <div class="row">
     {% for user in users %}
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">{{ user.name }}</h5>
-                    <p class="card-text">
-                        <strong>Skills:</strong> {{ user.skills or 'No skills listed' }} <br>
-                        <strong>Field of Work:</strong> {{ user.field_of_work or 'Not specified' }}
-                    </p>
-                    <a href="{{ url_for('routes.profile', user_id=user.id) }}" class="btn btn-info">View Profile</a>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+            <a href="{{ url_for('routes.profile', user_id=user.id) }}" class="card-link">
+                <div class="card h-100">
+                    <img src="{{ url_for('static', filename='uploads/avatars/' + user.avatar) }}" class="card-img-top img-thumbnail profile-image" alt="{{ user.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ user.name }}</h5>
+                        <p class="card-text">
+                            <strong>Skills:</strong> {{ user.skills or 'No skills listed' }} <br>
+                            <strong>Field of Work:</strong> {{ user.field_of_work or 'Not specified' }}
+                        </p>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
     {% else %}
         <p>No users found. Try adjusting your filters or search criteria.</p>

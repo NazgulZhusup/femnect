@@ -1,3 +1,4 @@
+<!-- project_details.html -->
 {% extends 'base.html' %}
 
 {% block content %}
@@ -34,6 +35,28 @@
     </div>
 </div>
 
+<h2>Suggested Users</h2>
+<div class="row">
+    {% for user in suggested_users %}
+        <div class="col-md-4 mb-4">
+            <a href="{{ url_for('routes.profile', user_id=user.id) }}" class="card-link">
+                <div class="card h-100">
+                    <img src="{{ url_for('static', filename='uploads/avatars/' + user.avatar) }}" class="card-img-top img-thumbnail profile-image" alt="{{ user.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ user.name }}</h5>
+                        <p class="card-text">
+                            <strong>Skills:</strong> {{ user.skills or 'No skills listed' }} <br>
+                            <strong>Field of Work:</strong> {{ user.field_of_work or 'Not specified' }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    {% else %}
+        <p>No suggested users found.</p>
+    {% endfor %}
+</div>
+
 <h2>Chat</h2>
 <div id="chat" class="border p-3">
     <div id="messages" class="mb-3">
@@ -51,42 +74,6 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-<script>
-    const socket = io();
-    const room = '{{ project.id }}';
-
-    document.getElementById('chat-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const messageInput = document.getElementById('message-input');
-        const message = messageInput.value;
-        if (message.trim() !== '') {
-            socket.emit('message', { room: room, msg: message });
-            messageInput.value = '';
-        }
-    });
-
-    document.getElementById('message-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            document.getElementById('chat-form').dispatchEvent(new Event('submit'));
-        }
-    });
-
-    socket.on('connect', () => {
-        socket.emit('join', { room: room });
-    });
-
-    socket.on('status', function(data) {
-        const messages = document.getElementById('messages');
-        messages.innerHTML += `<div>${data.msg}</div>`;
-    });
-
-    socket.on('message', function(data) {
-        const messages = document.getElementById('messages');
-        messages.innerHTML += `<div><strong>${data.user}:</strong> ${data.msg}</div>`;
-    });
-</script>
-
 <script>
     const socket = io();
     const room = '{{ project.id }}';
