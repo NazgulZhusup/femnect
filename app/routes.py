@@ -1,6 +1,8 @@
 from flask import render_template, request, redirect, url_for, flash, Blueprint
-from app import db
-from .models import User, Project
+from flask_socketio import emit, join_room, leave_room
+
+from app import db, socketio
+from .models import User, Project, Message
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -166,7 +168,7 @@ def create_project():
             image_filename = secure_filename(image_file.filename)
             image_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'projects', 'images')
             os.makedirs(image_folder, exist_ok=True)
-            image_path = os.path.join(image_folder, secure_filename(image_file.filename))
+            image_path = os.path.join(image_folder, image_filename)
             try:
                 image_file.save(image_path)
                 print(f"Image saved successfully: {image_path}")
@@ -212,7 +214,7 @@ def edit_project(project_id):
         image_file = request.files.get('images')
         if image_file and image_file.filename != '':
             image_filename = secure_filename(image_file.filename)
-            image_folder = os.path.join('static', 'uploads', 'projects', 'images')
+            image_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'projects', 'images')
             os.makedirs(image_folder, exist_ok=True)
             image_path = os.path.join(image_folder, image_filename)
 
@@ -286,3 +288,40 @@ def edit_project_detail(project_id):
     db.session.commit()
     flash('Project details updated successfully!', 'success')
     return redirect(url_for('routes.project_detail', project_id=project.id))
+
+
+@socketio.on('join')
+def on_join(data):
+    if current_user.is_authenticated:
+        room = data['room']
+        join_room(room)
+        emit('status', {'msg': f'{current_user.name} has entered the room.'}, room=room)
+    else:
+        emit('status', {'msg': 'You must be logged in to join the chat.'})
+
+@socketio.on('leave')
+def on_leave(data):
+    if current_user.is_authenticated:
+        room = data['room']
+        leave_room(room)
+        emit('status', {'msg': f'{current_user.name} has left the room.'}, room=room)
+    else:
+        emit('status', {'msg': 'You must be logged in to leave the chat.'})
+
+@socketio.on('message')
+def handle_message(data):
+    if current_user.is_authenticated:
+        room = data['room']
+        content = data['msg']
+        user_id = current_user.id
+        project_id = int(room)
+
+        # Сохранение сообщения в базе данных
+        message = Message(project_id=project_id, user_id=user_id, content=content)
+        db.session.add(message)
+        db.session.commit()
+
+        # Отправка сообщения всем в комнате
+        emit('message', {'user': current_user.name, 'msg': content}, room=room)
+    else:
+        emit('status', {'msg': 'You must be logged in to send messages.'})
