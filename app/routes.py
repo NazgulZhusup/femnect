@@ -1,12 +1,15 @@
+from datetime import datetime
+
 from flask import render_template, request, redirect, url_for, flash, Blueprint
 from flask_socketio import emit, join_room, leave_room
 
 from app import db, socketio
-from .models import User, Project, Message
+from .models import User, Project, Message, Like, Comment
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask import current_app
+from app.multiagent_setup import supervisor
 import os
 import re
 
@@ -76,7 +79,8 @@ def register():
 @routes.route('/profile/<int:user_id>')
 def profile(user_id):
     user = User.query.get_or_404(user_id)
-    return render_template('profile.html', user=user)
+    is_online = (datetime.utcnow() - user.last_seen).total_seconds() < 300  # 5 минут
+    return render_template('profile.html', user=user, is_online=is_online)
 
 @routes.route('/profile/edit', methods=['GET', 'POST'])
 @login_required
@@ -86,6 +90,47 @@ def edit_profile():
         current_user.bio = request.form['bio']
         current_user.skills = request.form['skills']
         current_user.field_of_work = request.form['field_of_work']
+
+        # Сохраняем социальные ссылки
+        current_user.social_links = {
+            'linkedin': request.form['linkedin'],
+            'github': request.form['github'],
+            'portfolio': request.form['portfolio']
+        }
+
+        # Сохраняем опыт работы
+        experience_titles = request.form.getlist('experience-title')
+        experience_companies = request.form.getlist('experience-company')
+        experience_start_dates = request.form.getlist('experience-start-date')
+        experience_end_dates = request.form.getlist('experience-end-date')
+
+        current_user.user_experience = []
+        for i in range(len(experience_titles)):
+            experience = {
+                'title': experience_titles[i],
+                'company': experience_companies[i],
+                'start_date': experience_start_dates[i],
+                'end_date': experience_end_dates[i]
+            }
+            current_user.user_experience.append(experience)
+
+        # Сохраняем образование
+        education_degrees = request.form.getlist('education-degree')
+        education_fields_of_study = request.form.getlist('education-field-of-study')
+        education_institutions = request.form.getlist('education-institution')
+        education_start_dates = request.form.getlist('education-start-date')
+        education_end_dates = request.form.getlist('education-end-date')
+
+        current_user.user_education = []
+        for i in range(len(education_degrees)):
+            education = {
+                'degree': education_degrees[i],
+                'field_of_study': education_fields_of_study[i],
+                'institution': education_institutions[i],
+                'start_date': education_start_dates[i],
+                'end_date': education_end_dates[i]
+            }
+            current_user.user_education.append(education)
 
         avatar = request.files.get('avatar')
         if avatar:
@@ -105,7 +150,6 @@ def edit_profile():
         return redirect(url_for('routes.profile', user_id=current_user.id))
 
     return render_template('edit_profile.html', user=current_user)
-
 @routes.route('/profile/change_password', methods=['GET', 'POST'])
 @login_required
 def change_password():
@@ -289,6 +333,96 @@ def edit_project_detail(project_id):
     flash('Project details updated successfully!', 'success')
     return redirect(url_for('routes.project_detail', project_id=project.id))
 
+@routes.route('/project/<int:project_id>/like', methods=['POST'])
+@login_required
+def like_project(project_id):
+    project = Project.query.get_or_404(project_id)
+    like = Like(user_id=current_user.id, project_id=project.id)
+    db.session.add(like)
+    db.session.commit()
+    flash('You liked this project!', 'success')
+    return redirect(url_for('routes.project_detail', project_id=project.id))
+
+@routes.route('/project/<int:project_id>/comment', methods=['POST'])
+@login_required
+def comment_project(project_id):
+    project = Project.query.get_or_404(project_id)
+    content = request.form['comment']
+    comment = Comment(user_id=current_user.id, project_id=project.id, content=content)
+    db.session.add(comment)
+    db.session.commit()
+    flash('Your comment has been posted!', 'success')
+    return redirect(url_for('routes.project_detail', project_id=project.id))
+
+def get_recommended_projects(user):
+    # Фильтрация по тегам
+    user_skills = user.skills.split(',')
+    recommended_projects = Project.query.filter(Project.tags.in_(user_skills)).order_by(Project.id.desc()).limit(5).all()
+
+    # Если не хватает проектов, добавляем по популярности
+    if len(recommended_projects) < 5:
+        popular_projects = Project.query.order_by(Project.likes.desc()).limit(5 - len(recommended_projects)).all()
+        recommended_projects.extend(popular_projects)
+
+    return recommended_projects
+
+def get_recommended_users(user):
+    # Фильтрация по навыкам
+    user_skills = user.skills.split(',') if user.skills else []
+
+    if not user_skills:
+        return []
+
+    recommended_users = User.query.filter(User.skills.ilike(f'%{user_skills[0]}%'))
+    for skill in user_skills[1:]:
+        recommended_users = recommended_users.filter(User.skills.ilike(f'%{skill}%'))
+    recommended_users = recommended_users.order_by(User.id.desc()).limit(5).all()
+
+    if len(recommended_users) < 5:
+        active_users = User.query.order_by(User.last_seen.desc()).limit(5 - len(recommended_users)).all()
+        recommended_users.extend(active_users)
+
+    return recommended_users
+
+
+@routes.route('/recommendations', methods=['GET', 'POST'])
+def get_recommendations():
+    if request.method == 'POST':
+        task = request.form.get("task")
+        input_data = request.form.get("input_data")
+
+        # Предварительная фильтрация данных
+        user = current_user
+        recommended_projects = get_recommended_projects(user)
+        recommended_users = get_recommended_users(user)
+
+        # Запуск мультиагентной системы
+        response = supervisor.run({
+            "task": task,
+            "input_data": input_data
+        })
+
+        return render_template(
+            'recommendations.html',
+            projects=recommended_projects,
+            users=recommended_users,
+            response=response
+        )
+
+    # Для GET-запроса загружаем пустую форму
+    return render_template(
+        'recommendations.html',
+        projects=[],
+        users=[],
+        response=None
+    )
+
+
+@routes.before_request
+def update_last_seen():
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.utcnow()
+        db.session.commit()
 
 @socketio.on('join')
 def on_join(data):
@@ -325,3 +459,4 @@ def handle_message(data):
         emit('message', {'user': current_user.name, 'msg': content}, room=room)
     else:
         emit('status', {'msg': 'You must be logged in to send messages.'})
+

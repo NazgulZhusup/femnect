@@ -3,6 +3,20 @@
 {% block content %}
 <h1>Projects</h1>
 
+<form method="GET" action="{{ url_for('routes.index') }}" class="mb-4">
+    <div class="row">
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="query" placeholder="Search projects" value="{{ request.args.get('query', '') }}">
+        </div>
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="tag" placeholder="Filter by tag" value="{{ request.args.get('tag', '') }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Apply</button>
+        </div>
+    </div>
+</form>
+
 <div class="row">
     {% for project in projects %}
         <div class="col-md-4 mb-4">

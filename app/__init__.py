@@ -3,6 +3,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_socketio import SocketIO
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # Загружает переменные из .env в окружение
+
 
 socketio = SocketIO()
 

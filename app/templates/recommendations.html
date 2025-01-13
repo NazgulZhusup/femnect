@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Recommendations</h1>
+
+<!-- Форма для взаимодействия с мультиагентной системой -->
+<h2>Request Recommendations</h2>
+<form method="POST" action="{{ url_for('routes.get_recommendations') }}" enctype="application/json" class="mb-4">
+    <div class="row">
+        <div class="col-md-6">
+            <label for="task">Select Task</label>
+            <select id="task" name="task" class="form-select" required>
+                <option value="search_companions">Search Companions</option>
+                <option value="team_formation">Team Formation</option>
+                <option value="idea_generation">Idea Generation</option>
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label for="input_data">Input Data</label>
+            <textarea id="input_data" name="input_data" class="form-control" rows="3" placeholder="Enter details (e.g., interests, skills, or goals)" required></textarea>
+        </div>
+    </div>
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Get Recommendations</button>
+    </div>
+</form>
+
+<!-- Отображение рекомендованных проектов -->
+<h2>Recommended Projects</h2>
+<div class="row">
+    {% for project in projects %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <a href="{{ url_for('routes.project_detail', project_id=project.id) }}">
+                    <img src="{{ url_for('static', filename='uploads/projects/images/' + project.image) }}" class="card-img-top img-thumbnail project-image" alt="{{ project.title }}">
+                </a>
+                <div class="card-body">
+                    <a href="{{ url_for('routes.project_detail', project_id=project.id) }}">
+                        <h5 class="card-title">{{ project.title }}</h5>
+                    </a>
+                    <p class="card-text">{{ project.description|truncate(100) }}</p>
+                    <p><strong>Tags:</strong> {{ project.tags }}</p>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>No recommended projects found.</p>
+    {% endfor %}
+</div>
+
+<!-- Отображение рекомендованных пользователей -->
+<h2>Recommended Users</h2>
+<div class="row">
+    {% for user in users %}
+        <div class="col-md-4 mb-4">
+            <a href="{{ url_for('routes.profile', user_id=user.id) }}" class="card-link">
+                <div class="card h-100">
+                    <img src="{{ url_for('static', filename='uploads/avatars/' + user.avatar) }}" class="card-img-top img-thumbnail profile-image" alt="{{ user.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ user.name }}</h5>
+                        <p class="card-text">
+                            <strong>Skills:</strong> {{ user.skills or 'No skills listed' }} <br>
+                            <strong>Field of Work:</strong> {{ user.field_of_work or 'Not specified' }}
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    {% else %}
+        <p>No recommended users found.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}

@@ -1,3 +1,4 @@
+<!-- edit_profile.html -->
 {% extends 'base.html' %}
 
 {% block content %}
@@ -28,6 +29,127 @@
         {% endif %}
         <input type="file" id="avatar" name="avatar" class="form-control">
     </div>
+
+    <!-- Добавляем поля для социальных ссылок -->
+    <div class="mb-3">
+        <label for="linkedin" class="form-label">LinkedIn</label>
+        <input type="text" id="linkedin" name="linkedin" class="form-control" value="{{ user.social_links.get('linkedin', '') if user.social_links else '' }}">
+    </div>
+    <div class="mb-3">
+        <label for="github" class="form-label">GitHub</label>
+        <input type="text" id="github" name="github" class="form-control" value="{{ user.social_links.get('github', '') if user.social_links else '' }}">
+    </div>
+    <div class="mb-3">
+        <label for="portfolio" class="form-label">Portfolio</label>
+        <input type="text" id="portfolio" name="portfolio" class="form-control" value="{{ user.social_links.get('portfolio', '') if user.social_links else '' }}">
+    </div>
+
+    <!-- Добавляем поля для опыта работы -->
+    <h2>Experience</h2>
+    <div id="experience-fields">
+        {% for experience in user.experience %}
+            <div class="mb-3">
+                <label for="experience-title" class="form-label">Title</label>
+                <input type="text" id="experience-title" name="experience-title" class="form-control" value="{{ experience.title }}">
+            </div>
+            <div class="mb-3">
+                <label for="experience-company" class="form-label">Company</label>
+                <input type="text" id="experience-company" name="experience-company" class="form-control" value="{{ experience.company }}">
+            </div>
+            <div class="mb-3">
+                <label for="experience-start-date" class="form-label">Start Date</label>
+                <input type="date" id="experience-start-date" name="experience-start-date" class="form-control" value="{{ experience.start_date }}">
+            </div>
+            <div class="mb-3">
+                <label for="experience-end-date" class="form-label">End Date</label>
+                <input type="date" id="experience-end-date" name="experience-end-date" class="form-control" value="{{ experience.end_date }}">
+            </div>
+        {% endfor %}
+    </div>
+    <button type="button" class="btn btn-secondary" id="add-experience">Add Experience</button>
+
+    <!-- Добавляем поля для образования -->
+    <h2>Education</h2>
+    <div id="education-fields">
+        {% for education in user.education %}
+            <div class="mb-3">
+                <label for="education-degree" class="form-label">Degree</label>
+                <input type="text" id="education-degree" name="education-degree" class="form-control" value="{{ education.degree }}">
+            </div>
+            <div class="mb-3">
+                <label for="education-field-of-study" class="form-label">Field of Study</label>
+                <input type="text" id="education-field-of-study" name="education-field-of-study" class="form-control" value="{{ education.field_of_study }}">
+            </div>
+            <div class="mb-3">
+                <label for="education-institution" class="form-label">Institution</label>
+                <input type="text" id="education-institution" name="education-institution" class="form-control" value="{{ education.institution }}">
+            </div>
+            <div class="mb-3">
+                <label for="education-start-date" class="form-label">Start Date</label>
+                <input type="date" id="education-start-date" name="education-start-date" class="form-control" value="{{ education.start_date }}">
+            </div>
+            <div class="mb-3">
+                <label for="education-end-date" class="form-label">End Date</label>
+                <input type="date" id="education-end-date" name="education-end-date" class="form-control" value="{{ education.end_date }}">
+            </div>
+        {% endfor %}
+    </div>
+    <button type="button" class="btn btn-secondary" id="add-education">Add Education</button>
+
     <button type="submit" class="btn btn-primary">Save Changes</button>
 </form>
+
+<script>
+    document.getElementById('add-experience').addEventListener('click', function() {
+        var experienceFields = document.getElementById('experience-fields');
+        var newExperience = document.createElement('div');
+        newExperience.innerHTML = `
+            <div class="mb-3">
+                <label for="experience-title" class="form-label">Title</label>
+                <input type="text" id="experience-title" name="experience-title" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="experience-company" class="form-label">Company</label>
+                <input type="text" id="experience-company" name="experience-company" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="experience-start-date" class="form-label">Start Date</label>
+                <input type="date" id="experience-start-date" name="experience-start-date" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="experience-end-date" class="form-label">End Date</label>
+                <input type="date" id="experience-end-date" name="experience-end-date" class="form-control">
+            </div>
+        `;
+        experienceFields.appendChild(newExperience);
+    });
+
+    document.getElementById('add-education').addEventListener('click', function() {
+        var educationFields = document.getElementById('education-fields');
+        var newEducation = document.createElement('div');
+        newEducation.innerHTML = `
+            <div class="mb-3">
+                <label for="education-degree" class="form-label">Degree</label>
+                <input type="text" id="education-degree" name="education-degree" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="education-field-of-study" class="form-label">Field of Study</label>
+                <input type="text" id="education-field-of-study" name="education-field-of-study" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="education-institution" class="form-label">Institution</label>
+                <input type="text" id="education-institution" name="education-institution" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="education-start-date" class="form-label">Start Date</label>
+                <input type="date" id="education-start-date" name="education-start-date" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="education-end-date" class="form-label">End Date</label>
+                <input type="date" id="education-end-date" name="education-end-date" class="form-control">
+            </div>
+        `;
+        educationFields.appendChild(newEducation);
+    });
+</script>
 {% endblock %}

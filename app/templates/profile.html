@@ -2,29 +2,71 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>{{ user.name }}</h1>
-<p>{{ user.bio }}</p>
-<p><strong>Skills:</strong> {{ user.skills }}</p>
-<p><strong>Field of Work:</strong> {{ user.field_of_work }}</p>
-<img src="{{ url_for('static', filename='uploads/avatars/' + user.avatar) }}" class="img-thumbnail profile-image" alt="{{ user.name }}">
+{% if user %}
+    <h1>{{ user.name }}</h1>
+    <p>Email: {{ user.email }}</p>
+    <p>Bio: {{ user.bio if user.bio else 'No bio available' }}</p>
+    <p>Skills: {{ user.skills if user.skills else 'No skills available' }}</p>
+    <p>Field of Work: {{ user.field_of_work if user.field_of_work else 'No field of work available' }}</p>
+    <p>Last Seen: {{ user.last_seen if user.last_seen else 'No last seen available' }}</p>
+    <p>Social Links: {{ user.social_links if user.social_links else 'No social links available' }}</p>
+    <img src="{{ url_for('static', filename='uploads/avatars/' + (user.avatar if user.avatar else 'default.png')) }}" class="img-thumbnail profile-image" alt="{{ user.name }}">
 
-<h2>Projects</h2>
-<div class="row">
-    {% for project in user.projects %}
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <a href="{{ url_for('routes.project_detail', project_id=project.id) }}">
-                    <img src="{{ url_for('static', filename='uploads/projects/images/' + project.image) }}" class="card-img-top img-thumbnail project-image" alt="{{ project.title }}">
-                </a>
-                <div class="card-body">
-                    <a href="{{ url_for('routes.project_detail', project_id=project.id) }}">
-                        <h5 class="card-title">{{ project.title }}</h5>
-                    </a>
-                    <p class="card-text">{{ project.description|truncate(100) }}</p>
-                    <p><strong>Tags:</strong> {{ project.tags }}</p>
+    <h2>Social Links</h2>
+    <ul>
+        <li><a href="{{ user.social_links.get('linkedin', '#') if user.social_links else '#' }}">LinkedIn</a></li>
+        <li><a href="{{ user.social_links.get('github', '#') if user.social_links else '#' }}">GitHub</a></li>
+        <li><a href="{{ user.social_links.get('portfolio', '#') if user.social_links else '#' }}">Portfolio</a></li>
+    </ul>
+
+    <h2>Experience</h2>
+    <ul>
+        {% if user.user_experience %}
+            {% for experience in user.user_experience %}
+                <li>{{ experience.title }} at {{ experience.company }} ({{ experience.start_date }} - {{ experience.end_date }})</li>
+            {% endfor %}
+        {% else %}
+            <li>No experience available</li>
+        {% endif %}
+    </ul>
+
+    <h2>Education</h2>
+    <ul>
+        {% if user.user_education %}
+            {% for education in user.user_education %}
+                <li>{{ education.degree }} in {{ education.field_of_study }} at {{ education.institution }} ({{ education.start_date }} - {{ education.end_date }})</li>
+            {% endfor %}
+        {% else %}
+            <li>No education available</li>
+        {% endif %}
+    </ul>
+    <a href="{{ url_for('routes.edit_profile') }}" class="btn btn-primary">Edit Profile</a>
+    <h2>Projects</h2>
+    <div class="row">
+        {% if user.projects %}
+            {% for project in user.projects %}
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <a href="{{ url_for('routes.project_detail', project_id=project.id) }}">
+                            <img src="{{ url_for('static', filename='uploads/projects/images/' + (project.image if project.image else 'default.png')) }}" class="card-img-top img-thumbnail project-image" alt="{{ project.title }}">
+                        </a>
+                        <div class="card-body">
+                            <a href="{{ url_for('routes.project_detail', project_id=project.id) }}">
+                                <h5 class="card-title">{{ project.title }}</h5>
+                            </a>
+                            <p class="card-text">{{ project.description|truncate(100) }}</p>
+                            <p><strong>Tags:</strong> {{ project.tags }}</p>
+                        </div>
+                    </div>
                 </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-md-12">
+                <p>No projects available</p>
             </div>
-        </div>
-    {% endfor %}
-</div>
+        {% endif %}
+    </div>
+{% else %}
+    <p>User not found</p>
+{% endif %}
 {% endblock %}
