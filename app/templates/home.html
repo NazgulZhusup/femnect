@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Femnect - Empowering Women</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="main-header">
+        <nav class="navbar">
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#testimonials">Testimonials</a></li>
+                <li><a href="#footer">Contact</a></li>
+                <li><a href="{{ url_for('routes.register') }}">Sign Up</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>Empowering Women to Connect, Grow, and Succeed Together!</h1>
+                <p>Join a network of ambitious, talented women and take your career to the next level with Femnect.</p>
+                <div class="hero-buttons">
+                    <a href="{{ url_for('routes.register') }}" class="btn-primary">Learn More</a>
+                    <a href="{{ url_for('routes.login') }}" class="btn-secondary">Sign In</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="static/images/hero-placeholder.png" alt="Hero Image">
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="features-section">
+            <h2>Discover the Powerful Features of the Femnect Platform</h2>
+            <div class="features-grid">
+                <div class="feature">
+                    <img src="static/icons/feature1.svg" alt="Feature 1">
+                    <h3>Tailored Opportunities</h3>
+                    <p>Receive personalized project recommendations based on your unique skills and interests.</p>
+                </div>
+                <div class="feature">
+                    <img src="static/icons/feature2.svg" alt="Feature 2">
+                    <h3>Collaborative Network</h3>
+                    <p>Connect with like-minded women to form impactful teams and bring ideas to life.</p>
+                </div>
+                <div class="feature">
+                    <img src="static/icons/feature3.svg" alt="Feature 3">
+                    <h3>Streamlined Processes</h3>
+                    <p>Manage your projects efficiently with intuitive tools and real-time updates.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section id="testimonials" class="testimonials-section">
+            <h2>What Our Users Say</h2>
+            <div class="testimonial">
+                <p>"Femnect has transformed my career by connecting me with inspiring women who share my vision. It's an indispensable tool for any professional woman."</p>
+                <h4>Jane Doe, Marketing Specialist</h4>
+                <img src="static/images/testimonial-placeholder.jpg" alt="Testimonial Image">
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer id="footer" class="main-footer">
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact Us</a>
+            </div>
+            <form class="newsletter-form">
+                <label for="newsletter">Stay Updated:</label>
+                <input type="email" id="newsletter" name="newsletter" placeholder="Enter your email">
+                <button type="submit">Subscribe</button>
+            </form>
+            <p>&copy; 2025 Femnect. All rights reserved.</p>
+        </footer>
+    </main>
+</body>
+</html>
